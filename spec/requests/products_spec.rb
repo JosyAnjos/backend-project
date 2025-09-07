@@ -62,7 +62,7 @@ RSpec.describe "/products", type: :request do
       it "renders a JSON response with errors for the new product" do
         post products_url,
              params: { product: invalid_attributes }, headers: valid_headers, as: :json
-        expect(response).to have_http_status(:unprocessable_entity)
+        expect(response).to have_http_status(:unprocessable_content)
         expect(response.content_type).to match(a_string_including("application/json"))
       end
     end
@@ -102,7 +102,7 @@ RSpec.describe "/products", type: :request do
         product = Product.create! valid_attributes
         patch product_url(product),
               params: { product: invalid_attributes }, headers: valid_headers, as: :json
-        expect(response).to have_http_status(:unprocessable_entity)
+        expect(response).to have_http_status(:unprocessable_content)
         expect(response.content_type).to match(a_string_including("application/json"))
       end
     end
