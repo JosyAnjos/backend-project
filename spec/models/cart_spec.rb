@@ -48,6 +48,16 @@ describe Cart, type: :model do
       expect(item.quantity).to eq(3)
       expect(cart.total_price).to eq(30)
     end
+
+    it 'raises error when trying to add zero quantity' do
+      expect { cart.add_product(product, 0) }
+        .to raise_error(ArgumentError, 'Quantity must be positive')
+    end
+
+    it 'raises error when trying to add negative quantity' do
+      expect { cart.add_product(product, -5) }
+        .to raise_error(ArgumentError, 'Quantity must be positive')
+    end
   end
 
   describe '#remove_product' do

@@ -26,6 +26,8 @@ class Cart < ApplicationRecord
   end
 
   def add_product(product, quantity = 1)
+    raise ArgumentError, 'Quantity must be positive' if quantity.to_i <= 0
+
     item = cart_items.find_or_initialize_by(product: product)
     item.quantity = (item.quantity || 0) + quantity.to_i
     item.save!

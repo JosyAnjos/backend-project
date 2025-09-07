@@ -7,9 +7,12 @@ class CartsController < ApplicationController
 
   def add_item
     product = Product.find(cart_params[:product_id])
-    @cart.add_product(product, cart_params[:quantity].to_i)
-
+    @cart.add_product(product, cart_params[:quantity])
     render json: CartSerializer.new(@cart).as_json, status: :created
+  rescue ArgumentError => e
+    render json: { error: e.message }, status: :unprocessable_entity
+  rescue ActiveRecord::RecordInvalid => e
+    render json: { error: e.record.errors.full_messages }, status: :unprocessable_entity
   end
 
   def remove_item
