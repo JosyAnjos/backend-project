@@ -5,7 +5,7 @@ class Cart < ApplicationRecord
 
   scope :inactive, ->  { where('last_interaction_at < ?', 3.hours.ago) }
   scope :abandoned, -> { where(abandoned: true) }
-  scope :expired, ->   { where('last_interaction_at < ?', 7.days.ago) }
+  scope :expired,   -> { where('last_interaction_at < ?', 7.days.ago) }
 
   def mark_as_abandoned
     if last_interaction_at.present? && last_interaction_at < 3.hours.ago
@@ -23,5 +23,33 @@ class Cart < ApplicationRecord
 
   def touch_interaction!
     update!(last_interaction_at: Time.current)
+  end
+
+  def add_product(product, quantity = 1)
+    item = cart_items.find_or_initialize_by(product: product)
+    item.quantity = (item.quantity || 0) + quantity.to_i
+    item.save!
+    recalculate_total!
+    item
+  end
+
+  def remove_product(product)
+    item = cart_items.find_by(product: product)
+    return unless item
+
+    item.destroy
+    recalculate_total!
+  end
+
+  def recalculate_total!
+    total = cart_items
+              .joins(:product)
+              .sum(Arel.sql('cart_items.quantity * products.price'))
+    update!(total_price: total)
+  end
+
+  # Delega para o serializer e mantem compatibilidade com testes que chamam Cart#as_json
+  def as_json(_opts = {})
+    CartSerializer.new(self).as_json
   end
 end

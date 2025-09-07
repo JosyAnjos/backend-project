@@ -9,7 +9,6 @@ gem "redis", "~> 5.0"
 gem "bootsnap", require: false
 gem 'sidekiq'
 
-
 group :development, :test do
   gem "rspec-rails", "~> 6.1"
   gem "factory_bot_rails"
