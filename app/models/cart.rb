@@ -3,6 +3,10 @@ class Cart < ApplicationRecord
 
   validates_numericality_of :total_price, greater_than_or_equal_to: 0, allow_nil: true
 
+  scope :inactive, ->  { where('last_interaction_at < ?', 3.hours.ago) }
+  scope :abandoned, -> { where(abandoned: true) }
+  scope :expired, ->   { where('last_interaction_at < ?', 7.days.ago) }
+
   def mark_as_abandoned
     if last_interaction_at.present? && last_interaction_at < 3.hours.ago
       update(abandoned: true)
