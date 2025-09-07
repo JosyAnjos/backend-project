@@ -1,48 +1,53 @@
-version: '3'
-
 services:
-    db:
-        image: postgres:16-alpine
-        environment:
-          - POSTGRES_USER=postgres
-          - POSTGRES_PASSWORD=password
-        ports:
-            - '5432:5432'
-        volumes:
-            - postgres13:/var/lib/postgresql/data
-    redis:
-        image: redis:7.0.15-alpine
-        ports:
-        - '6379:6379'
-        volumes:
-        - redis_data:/data
-    web:
-        build: .
-        command: bundle exec rails server -b 0.0.0.0
-        volumes:
-            - .:/rails
-        ports:
-            - "3000:3000"
-        depends_on:
-            - db
-            - redis
-        environment:
-            - REDIS_URL=redis://redis:6379/0
-            - RAILS_ENV=development
-            - POSTGRES_USER=postgres
-            - POSTGRES_PASSWORD=password
-            - POSTGRES_HOST=db
-            - RAILS_MAX_THREADS=5
-    test:
-        build: .
-        command: bundle exec rspec
-        volumes:
-            - .:/rails
-        depends_on:
-            - db
-            - redis
-        environment:
-            - REDIS_URL=redis://redis:6379/0
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+    ports:
+      - '5432:5432'
+    volumes:
+      - postgres13:/var/lib/postgresql/data
+
+  redis:
+    image: redis:7.0.15-alpine
+    ports:
+      - '6379:6379'
+    volumes:
+      - redis_data:/data
+
+  web:
+    build: .
+    command: bundle exec rails server -b 0.0.0.0
+    volumes:
+      - .:/rails:cached
+    ports:
+      - "3000:3000"
+    depends_on:
+      - db
+      - redis
+    environment:
+      REDIS_URL: redis://redis:6379/0
+      RAILS_ENV: development
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+      POSTGRES_HOST: db
+      RAILS_MAX_THREADS: 5
+      BUNDLE_WITHOUT: "development:test"
+
+  test:
+    build: .
+    command: bundle exec rspec
+    volumes:
+      - .:/rails:cached
+    depends_on:
+      - db
+      - redis
+    environment:
+      REDIS_URL: redis://redis:6379/0
+      RAILS_ENV: test
+      BUNDLE_WITHOUT: ""   # força instalar também dev/test
+
 volumes:
-    postgres13:
-    redis_data:
+  postgres13:
+  redis_data:

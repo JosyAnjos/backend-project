@@ -1,56 +1,58 @@
 # syntax = docker/dockerfile:1
 
-# Make sure RUBY_VERSION matches the Ruby version in .ruby-version and Gemfile
 ARG RUBY_VERSION=3.3.1
-FROM registry.docker.com/library/ruby:$RUBY_VERSION-slim as base
+FROM ruby:$RUBY_VERSION-slim as base
 
-# Rails app lives here
 WORKDIR /rails
 
 ENV BUNDLE_DEPLOYMENT="1" \
     BUNDLE_PATH="/usr/local/bundle" \
     BUNDLE_WITHOUT="development"
 
-# Throw-away build stage to reduce size of final image
+# Build stage com ferramentas de compilação
 FROM base as build
 
-# Install packages needed to build gems
 RUN apt-get update -qq && \
-    apt-get install --no-install-recommends -y build-essential git libpq-dev libvips pkg-config
+    apt-get install --no-install-recommends -y \
+      build-essential \
+      git \
+      libpq-dev \
+      libvips \
+      pkg-config \
+      libssl-dev \
+      zlib1g-dev && \
+    rm -rf /var/lib/apt/lists/*
 
-# Install application gems
 COPY Gemfile Gemfile.lock ./
 RUN bundle install && \
-    rm -rf ~/.bundle/ "${BUNDLE_PATH}"/ruby/*/cache "${BUNDLE_PATH}"/ruby/*/bundler/gems/*/.git && \
+    rm -rf ~/.bundle/ "${BUNDLE_PATH}"/ruby/*/cache \
+           "${BUNDLE_PATH}"/ruby/*/bundler/gems/*/.git && \
     bundle exec bootsnap precompile --gemfile
 
-# Copy application code
 COPY . .
 
-# Precompile bootsnap code for faster boot times
 RUN bundle exec bootsnap precompile app/ lib/
 
-# Final stage for app image
+# Stage final para produção/desenvolvimento
 FROM base
 
-# Install packages needed for deployment
 RUN apt-get update -qq && \
-    apt-get install --no-install-recommends -y curl libvips postgresql-client redis-tools && \
+    apt-get install --no-install-recommends -y \
+      curl \
+      libvips \
+      postgresql-client \
+      redis-tools && \
     rm -rf /var/lib/apt/lists /var/cache/apt/archives
 
-# Copy built artifacts: gems, application
 COPY --from=build /usr/local/bundle /usr/local/bundle
 COPY --from=build /rails /rails
 
-# Garantir que as pastas existem antes do chown
 RUN mkdir -p db log storage tmp && \
     useradd rails --create-home --shell /bin/bash && \
     chown -R rails:rails db log storage tmp
 USER rails:rails
 
-# Entrypoint prepares the database.
 ENTRYPOINT ["/rails/bin/docker-entrypoint"]
 
-# Start the server by default, this can be overwritten at runtime
 EXPOSE 3000
 CMD ["./bin/rails", "server"]
