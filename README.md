@@ -51,7 +51,7 @@ Isso sobe:
 
 ### 4. Criar o banco e rodar migrations
 ```bash
-docker compose run --rm api rails db:create db:migrate
+docker compose run --rm web rails db:create db:migrate
 ```
 
 ---
@@ -61,7 +61,7 @@ docker compose run --rm api rails db:create db:migrate
 O projeto usa **RSpec** para testes unitários e de request.
 
 ```bash
-docker compose run --rm api bundle exec rspec
+docker compose run --rm test
 ```
 
 Exemplo de saída esperada:
@@ -81,7 +81,7 @@ A API utiliza autenticação baseada em token via Devise. Cada `User` possui um 
 Atualmente, não há um endpoint de registro/login implementado. Para testar, você pode criar um usuário manualmente no console Rails e usar o `authentication_token` gerado:
 
 ```bash
-docker compose run --rm api rails c
+docker compose run --rm web rails c
 ```
 Dentro do console:
 ```ruby
@@ -90,6 +90,127 @@ puts user.authentication_token
 ```
 
 Use o token retornado nos seus requests.
+
+---
+
+## 📄 Documentação dos Endpoints de Produtos (Products Controller)
+
+Para testar e interagir com os endpoints de produtos via `curl`, assumindo que sua aplicação Rails está rodando em `http://localhost:3000` e você tem um token de autenticação.
+
+**Cabeçalho de Autenticação:**
+Todos os endpoints de produtos exigem o cabeçalho `Authorization` no formato `Token token=<SEU_TOKEN>`.
+
+#### **1. `GET /products` - Listar todos os produtos**
+
+Este endpoint retorna uma lista de todos os produtos cadastrados.
+
+```bash
+curl -X GET http://localhost:3000/products \
+     -H "Authorization: Token token=<SEU_TOKEN>"
+```
+
+**Exemplo de Resposta:**
+```json
+[
+  {
+    "id": 1,
+    "name": "Nome do Produto A",
+    "price": "10.0"
+  },
+  {
+    "id": 2,
+    "name": "Nome do Produto B",
+    "price": "5.90"
+  }
+]
+```
+
+#### **2. `GET /products/:id` - Exibir um produto**
+
+Este endpoint retorna os detalhes de um produto específico.
+
+```bash
+curl -X GET http://localhost:3000/products/1 \
+     -H "Authorization: Token token=<SEU_TOKEN>"
+```
+
+**Exemplo de Resposta:**
+```json
+{
+  "id": 1,
+  "name": "Nome do Produto A",
+  "price": "10.0"
+}
+```
+
+#### **3. `POST /products` - Criar um novo produto**
+
+Este endpoint permite criar um novo produto.
+
+**Payload de Exemplo:**
+```json
+{
+  "name": "Novo Produto",
+  "price": 25.0
+}
+```
+
+**Exemplo de Uso:**
+```bash
+curl -X POST -H "Content-Type: application/json" \
+     -H "Authorization: Token token=<SEU_TOKEN>" \
+     -d '{"name": "Novo Produto", "price": 25.0}' http://localhost:3000/products
+```
+
+**Exemplo de Resposta:**
+```json
+{
+  "id": 3,
+  "name": "Novo Produto",
+  "price": "25.0"
+}
+```
+
+#### **4. `PATCH /products/:id` - Atualizar um produto**
+
+Este endpoint permite atualizar os dados de um produto existente.
+
+**Payload de Exemplo:**
+```json
+{
+  "name": "Produto Atualizado",
+  "price": 22.5
+}
+```
+
+**Exemplo de Uso:**
+```bash
+curl -X PATCH -H "Content-Type: application/json" \
+     -H "Authorization: Token token=<SEU_TOKEN>" \
+     -d '{"name": "Produto Atualizado", "price": 22.5}' http://localhost:3000/products/1
+```
+
+**Exemplo de Resposta:**
+```json
+{
+  "id": 1,
+  "name": "Produto Atualizado",
+  "price": "22.5"
+}
+```
+
+#### **5. `DELETE /products/:id` - Deletar um produto**
+
+Este endpoint remove um produto específico.
+
+**Exemplo de Uso:**
+```bash
+curl -X DELETE http://localhost:3000/products/1 \
+     -H "Authorization: Token token=<SEU_TOKEN>"
+```
+
+**Exemplo de Resposta:**
+(Não há conteúdo na resposta, apenas o status 204 No Content)
 
 ---
 
@@ -154,6 +275,7 @@ curl -X POST -H "Content-Type: application/json" \
 ```
 
 **Exemplo de Uso (Atualizar quantidade de produto existente):**
+
 ```bash
 # Se o produto com product_id=1 já estiver no carrinho, a quantidade será incrementada
 curl -X POST -H "Content-Type: application/json" \

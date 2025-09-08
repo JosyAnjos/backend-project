@@ -1,6 +1,7 @@
 require 'rails_helper'
 
 RSpec.describe "/products", type: :request do
+  let(:user) { create(:user) }
   let(:valid_attributes) {
     {
       name: 'A product',
@@ -14,9 +15,7 @@ RSpec.describe "/products", type: :request do
     }
   }
 
-  let(:valid_headers) {
-    {}
-  }
+  let(:valid_headers) { { 'Authorization' => "Token token=#{user.authentication_token}" } }
 
   describe "GET /index" do
     it "renders a successful response" do
@@ -29,7 +28,7 @@ RSpec.describe "/products", type: :request do
   describe "GET /show" do
     it "renders a successful response" do
       product = Product.create! valid_attributes
-      get product_url(product), as: :json
+      get product_url(product), headers: valid_headers, as: :json
       expect(response).to be_successful
     end
   end
@@ -55,7 +54,7 @@ RSpec.describe "/products", type: :request do
       it "does not create a new Product" do
         expect {
           post products_url,
-               params: { product: invalid_attributes }, as: :json
+               params: { product: invalid_attributes }, headers: valid_headers, as: :json
         }.to change(Product, :count).by(0)
       end
 

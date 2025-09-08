@@ -1,4 +1,6 @@
 class ProductsController < ApplicationController
+  before_action :authenticate_user_from_token
+  before_action :require_authentication
   before_action :set_product, only: %i[ show update destroy ]
 
   def index
@@ -34,6 +36,10 @@ class ProductsController < ApplicationController
   end
 
   private
+    def require_authentication
+      render json: { error: "Unauthorized" }, status: :unauthorized unless user_signed_in?
+    end
+
     def set_product
       @product = Product.find(params[:id])
     end
