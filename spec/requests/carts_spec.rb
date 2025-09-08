@@ -1,6 +1,6 @@
 require 'rails_helper'
 
-describe '/cart', type: :request do
+RSpec.describe '/cart', type: :request do
   let(:product1) { create(:product, price: 10.0) }
   let(:product2) { create(:product, price: 5.0) }
 
@@ -8,11 +8,12 @@ describe '/cart', type: :request do
     context 'when cart does not exist' do
       it 'creates a new cart and returns it' do
         get '/cart'
+        puts response.body
         expect(response).to have_http_status(:ok)
 
         json_response = JSON.parse(response.body)
         expect(json_response['id']).to be_present
-        expect(json_response['products']).to be_empty
+        expect(json_response['cart_items']).to be_empty
       end
     end
 
@@ -30,7 +31,7 @@ describe '/cart', type: :request do
 
         json_response = JSON.parse(response.body)
         expect(json_response['id']).to eq(cart.id)
-        expect(json_response['products'].size).to eq(1)
+        expect(json_response['cart_items'].size).to eq(1)
         expect(json_response['total_price']).to eq('20.0')
       end
     end
@@ -48,9 +49,9 @@ describe '/cart', type: :request do
 
       it 'returns the cart with the new product' do
         json_response = JSON.parse(response.body)
-        expect(json_response['products'].size).to eq(1)
-        expect(json_response['products'][0]['id']).to eq(product1.id)
-        expect(json_response['products'][0]['quantity']).to eq(1)
+        expect(json_response['cart_items'].size).to eq(1)
+        expect(json_response['cart_items'][0]['id']).to eq(product1.id)
+        expect(json_response['cart_items'][0]['quantity']).to eq(1)
       end
 
       it 'calculates the total price correctly' do
@@ -70,7 +71,7 @@ describe '/cart', type: :request do
 
       it 'updates the quantity of the existing item in the cart' do
         json_response = JSON.parse(response.body)
-        expect(json_response['products'][0]['quantity']).to eq(3)
+        expect(json_response['cart_items'][0]['quantity']).to eq(3)
       end
 
       it 'calculates the total price correctly' do

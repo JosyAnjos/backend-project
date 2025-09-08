@@ -50,8 +50,11 @@ class Cart < ApplicationRecord
     update!(total_price: total)
   end
 
-  # Delega para o serializer e mantem compatibilidade com testes que chamam Cart#as_json
   def as_json(_opts = {})
-    CartSerializer.new(self).as_json
+    serializer = CartSerializer.new(self)
+    serialized_data = serializer.as_json
+
+    serialized_data[:products] = serialized_data.delete(:cart_items) if serialized_data.key?(:cart_items)
+    serialized_data
   end
 end

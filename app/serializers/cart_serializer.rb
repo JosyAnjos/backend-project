@@ -1,15 +1,8 @@
-class CartSerializer
-  def initialize(cart)
-    @cart = cart
-  end
+class CartSerializer < ActiveModel::Serializer
+  attributes :id, :total_price
+  has_many :cart_items, serializer: CartItemSerializer
 
-  def as_json(*)
-    {
-      id: @cart.id,
-      total_price: @cart.total_price.to_s,
-      products: @cart.cart_items.map do |item|
-        CartItemSerializer.new(item).as_json
-      end
-    }
+  def total_price
+    object.total_price.to_s
   end
 end

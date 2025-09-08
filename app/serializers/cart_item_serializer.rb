@@ -1,15 +1,19 @@
-class CartItemSerializer
-  def initialize(cart_item)
-    @cart_item = cart_item
+class CartItemSerializer < ActiveModel::Serializer
+  attributes :id, :name, :quantity, :unit_price, :total_price
+
+  def id
+    object.product.id
   end
 
-  def as_json(*)
-    {
-      id: @cart_item.product.id,
-      name: @cart_item.product.name,
-      quantity: @cart_item.quantity,
-      unit_price: @cart_item.product.price.to_s,
-      total_price: (@cart_item.quantity * @cart_item.product.price).to_s
-    }
+  def name
+    object.product.name
+  end
+
+  def unit_price
+    object.product.price.to_s
+  end
+
+  def total_price
+    (object.quantity * object.product.price).to_s
   end
 end

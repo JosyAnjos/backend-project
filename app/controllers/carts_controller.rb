@@ -2,25 +2,21 @@ class CartsController < ApplicationController
   before_action :set_cart
 
   def show
-    render json: CartSerializer.new(@cart).as_json
+    render json: @cart, include: :cart_items
   end
 
   def add_item
     product = Product.find(cart_params[:product_id])
-    @cart.add_product(product, cart_params[:quantity])
-    render json: CartSerializer.new(@cart).as_json, status: :created
-  rescue ArgumentError => e
-    render json: { error: e.message }, status: :unprocessable_entity
-  rescue ActiveRecord::RecordInvalid => e
-    render json: { error: e.record.errors.full_messages }, status: :unprocessable_entity
+    cart_item = @cart.add_product(product, cart_params[:quantity])
+
+    render json: @cart, include: :cart_items, status: :created
   end
 
   def remove_item
-    if @cart.remove_product(params[:product_id])
-      render json: CartSerializer.new(@cart).as_json
-    else
-      render json: { error: "Product not found in cart" }, status: :not_found
-    end
+    product = Product.find(params[:product_id])
+    @cart.remove_product(product)
+
+    render json: @cart, include: :cart_items
   end
 
   private

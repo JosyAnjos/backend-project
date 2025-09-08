@@ -8,6 +8,7 @@ gem "puma", "~> 7.0"
 gem "redis", "~> 5.0"
 gem "bootsnap", require: false
 gem 'sidekiq'
+gem 'active_model_serializers', '~> 0.10.0'
 
 group :development, :test do
   gem "rspec-rails", "~> 6.1"
