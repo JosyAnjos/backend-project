@@ -1,21 +1,24 @@
 class Cart < ApplicationRecord
+  CART_ABANDONMENT_THRESHOLD_HOURS = 3
+  CART_REMOVAL_THRESHOLD_DAYS = 7
+
   belongs_to :user
   has_many :cart_items, dependent: :destroy
 
   validates_numericality_of :total_price, greater_than_or_equal_to: 0, allow_nil: true
 
-  scope :inactive, ->  { where('last_interaction_at < ?', Rails.application.config.cart_abandonment_threshold_hours.hours.ago) }
+  scope :inactive, ->  { where('last_interaction_at < ?', CART_ABANDONMENT_THRESHOLD_HOURS.hours.ago) }
   scope :abandoned, -> { where(abandoned: true) }
-  scope :expired,   -> { where('last_interaction_at < ?', Rails.application.config.cart_removal_threshold_days.days.ago) }
+  scope :expired,   -> { where('last_interaction_at < ?', CART_REMOVAL_THRESHOLD_DAYS.days.ago) }
 
   def mark_as_abandoned
-    if last_interaction_at.present? && last_interaction_at < Rails.application.config.cart_abandonment_threshold_hours.hours.ago
+    if last_interaction_at.present? && last_interaction_at < CART_ABANDONMENT_THRESHOLD_HOURS.hours.ago
       update(abandoned: true)
     end
   end
 
   def remove_if_abandoned
-    destroy if abandoned? && last_interaction_at.present? && last_interaction_at < Rails.application.config.cart_removal_threshold_days.days.ago
+    destroy if abandoned? && last_interaction_at.present? && last_interaction_at < CART_REMOVAL_THRESHOLD_DAYS.days.ago
   end
 
   def abandoned?
