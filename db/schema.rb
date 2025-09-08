@@ -30,7 +30,7 @@ ActiveRecord::Schema[7.1].define(version: 2025_09_08_023929) do
     t.datetime "updated_at", null: false
     t.boolean "abandoned", default: false
     t.datetime "last_interaction_at"
-    t.bigint "user_id", null: false
+    t.bigint "user_id"
     t.index ["user_id"], name: "index_carts_on_user_id"
   end
 

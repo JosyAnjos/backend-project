@@ -2,9 +2,10 @@ require 'rails_helper'
 
 describe MarkCartAsAbandonedJob, type: :job do
   describe "#perform" do
-    let!(:active_cart)        { Cart.create!(last_interaction_at: 1.hour.ago) }
-    let!(:abandoned_cart)     { Cart.create!(last_interaction_at: 4.hours.ago) }
-    let!(:old_abandoned_cart) { Cart.create!(abandoned: true, last_interaction_at: 8.days.ago) }
+    let!(:user) { create(:user) }
+    let!(:active_cart) { create(:cart, user: user, last_interaction_at: 1.hour.ago) }
+    let!(:abandoned_cart) { create(:cart, user: user, last_interaction_at: 4.hours.ago) }
+    let!(:old_abandoned_cart) { create(:cart, user: user, abandoned: true, last_interaction_at: 8.days.ago) }
 
     it 'marks inactive carts as abandoned' do
       expect {
