@@ -32,5 +32,9 @@ module Store
     config.middleware.use ActionDispatch::Cookies
     config.middleware.use config.session_store, config.session_options
     config.active_job.queue_adapter = :sidekiq
+
+    # Cart abandonment settings
+    config.cart_abandonment_threshold_hours = 3
+    config.cart_removal_threshold_days = 7
   end
 end

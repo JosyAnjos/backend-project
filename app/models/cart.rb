@@ -3,18 +3,18 @@ class Cart < ApplicationRecord
 
   validates_numericality_of :total_price, greater_than_or_equal_to: 0, allow_nil: true
 
-  scope :inactive, ->  { where('last_interaction_at < ?', 3.hours.ago) }
+  scope :inactive, ->  { where('last_interaction_at < ?', Rails.application.config.cart_abandonment_threshold_hours.hours.ago) }
   scope :abandoned, -> { where(abandoned: true) }
-  scope :expired,   -> { where('last_interaction_at < ?', 7.days.ago) }
+  scope :expired,   -> { where('last_interaction_at < ?', Rails.application.config.cart_removal_threshold_days.days.ago) }
 
   def mark_as_abandoned
-    if last_interaction_at.present? && last_interaction_at < 3.hours.ago
+    if last_interaction_at.present? && last_interaction_at < Rails.application.config.cart_abandonment_threshold_hours.hours.ago
       update(abandoned: true)
     end
   end
 
   def remove_if_abandoned
-    destroy if abandoned? && last_interaction_at.present? && last_interaction_at < 7.days.ago
+    destroy if abandoned? && last_interaction_at.present? && last_interaction_at < Rails.application.config.cart_removal_threshold_days.days.ago
   end
 
   def abandoned?
@@ -50,10 +50,12 @@ class Cart < ApplicationRecord
     update!(total_price: total)
   end
 
+  # Delega para o serializer e mantem compatibilidade com testes que chamam Cart#as_json
   def as_json(_opts = {})
     serializer = CartSerializer.new(self)
     serialized_data = serializer.as_json
 
+    # Adjust keys to match test expectations
     serialized_data[:products] = serialized_data.delete(:cart_items) if serialized_data.key?(:cart_items)
     serialized_data
   end
