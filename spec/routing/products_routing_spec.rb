@@ -1,29 +1,29 @@
 require 'rails_helper'
 
-describe ProductsController, type: :routing do
+describe Api::V1::ProductsController, type: :routing do
   describe 'routing' do
     it 'routes to #index' do
-      expect(get: '/products').to route_to('products#index')
+      expect(get: '/api/v1/products').to route_to('api/v1/products#index')
     end
 
     it 'routes to #show' do
-      expect(get: '/products/1').to route_to('products#show', id: '1')
+      expect(get: '/api/v1/products/1').to route_to('api/v1/products#show', id: '1')
     end
 
     it 'routes to #create' do
-      expect(post: '/products').to route_to('products#create')
+      expect(post: '/api/v1/products').to route_to('api/v1/products#create')
     end
 
     it 'routes to #update via PUT' do
-      expect(put: '/products/1').to route_to('products#update', id: '1')
+      expect(put: '/api/v1/products/1').to route_to('api/v1/products#update', id: '1')
     end
 
     it 'routes to #update via PATCH' do
-      expect(patch: '/products/1').to route_to('products#update', id: '1')
+      expect(patch: '/api/v1/products/1').to route_to('api/v1/products#update', id: '1')
     end
 
     it 'routes to #destroy' do
-      expect(delete: '/products/1').to route_to('products#destroy', id: '1')
+      expect(delete: '/api/v1/products/1').to route_to('api/v1/products#destroy', id: '1')
     end
   end
 end

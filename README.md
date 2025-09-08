@@ -100,12 +100,12 @@ Para testar e interagir com os endpoints de produtos via `curl`, assumindo que s
 **Cabeçalho de Autenticação:**
 Todos os endpoints de produtos exigem o cabeçalho `Authorization` no formato `Token token=<SEU_TOKEN>`.
 
-#### **1. `GET /products` - Listar todos os produtos**
+#### **1. `GET /api/v1/products` - Listar todos os produtos**
 
 Este endpoint retorna uma lista de todos os produtos cadastrados.
 
 ```bash
-curl -X GET http://localhost:3000/products \
+curl -X GET http://localhost:3000/api/v1/products \
      -H "Authorization: Token token=<SEU_TOKEN>"
 ```
 
@@ -125,12 +125,12 @@ curl -X GET http://localhost:3000/products \
 ]
 ```
 
-#### **2. `GET /products/:id` - Exibir um produto**
+#### **2. `GET /api/v1/products/:id` - Exibir um produto**
 
 Este endpoint retorna os detalhes de um produto específico.
 
 ```bash
-curl -X GET http://localhost:3000/products/1 \
+curl -X GET http://localhost:3000/api/v1/products/1 \
      -H "Authorization: Token token=<SEU_TOKEN>"
 ```
 
@@ -143,7 +143,7 @@ curl -X GET http://localhost:3000/products/1 \
 }
 ```
 
-#### **3. `POST /products` - Criar um novo produto**
+#### **3. `POST /api/v1/products` - Criar um novo produto**
 
 Este endpoint permite criar um novo produto.
 
@@ -159,7 +159,7 @@ Este endpoint permite criar um novo produto.
 ```bash
 curl -X POST -H "Content-Type: application/json" \
      -H "Authorization: Token token=<SEU_TOKEN>" \
-     -d '{"name": "Novo Produto", "price": 25.0}' http://localhost:3000/products
+     -d '{"name": "Novo Produto", "price": 25.0}' http://localhost:3000/api/v1/products
 ```
 
 **Exemplo de Resposta:**
@@ -171,7 +171,7 @@ curl -X POST -H "Content-Type: application/json" \
 }
 ```
 
-#### **4. `PATCH /products/:id` - Atualizar um produto**
+#### **4. `PATCH /api/v1/products/:id` - Atualizar um produto**
 
 Este endpoint permite atualizar os dados de um produto existente.
 
@@ -187,7 +187,7 @@ Este endpoint permite atualizar os dados de um produto existente.
 ```bash
 curl -X PATCH -H "Content-Type: application/json" \
      -H "Authorization: Token token=<SEU_TOKEN>" \
-     -d '{"name": "Produto Atualizado", "price": 22.5}' http://localhost:3000/products/1
+     -d '{"name": "Produto Atualizado", "price": 22.5}' http://localhost:3000/api/v1/products/1
 ```
 
 **Exemplo de Resposta:**
@@ -199,13 +199,13 @@ curl -X PATCH -H "Content-Type: application/json" \
 }
 ```
 
-#### **5. `DELETE /products/:id` - Deletar um produto**
+#### **5. `DELETE /api/v1/products/:id` - Deletar um produto**
 
 Este endpoint remove um produto específico.
 
 **Exemplo de Uso:**
 ```bash
-curl -X DELETE http://localhost:3000/products/1 \
+curl -X DELETE http://localhost:3000/api/v1/products/1 \
      -H "Authorization: Token token=<SEU_TOKEN>"
 ```
 
@@ -221,12 +221,12 @@ Para testar e interagir com os endpoints do carrinho via `curl`, assumindo que s
 **Cabeçalho de Autenticação:**
 Todos os endpoints do carrinho exigem o cabeçalho `Authorization` no formato `Token token=<SEU_TOKEN>`.
 
-#### **1. `GET /cart` - Listar itens do carrinho atual**
+#### **1. `GET /api/v1/cart` - Listar itens do carrinho atual**
 
 Este endpoint retorna o estado atual do carrinho do usuário autenticado. Se não houver um carrinho associado ao usuário, um novo será criado e retornado.
 
 ```bash
-curl -X GET http://localhost:3000/cart \
+curl -X GET http://localhost:3000/api/v1/cart \
      -H "Authorization: Token token=<SEU_TOKEN>"
 ```
 
@@ -254,7 +254,7 @@ curl -X GET http://localhost:3000/cart \
 }
 ```
 
-#### **2. `POST /cart` - Registrar/Alterar quantidade de produtos no carrinho**
+#### **2. `POST /api/v1/cart` - Registrar/Alterar quantidade de produtos no carrinho**
 
 Este endpoint permite adicionar um produto ao carrinho do usuário autenticado ou atualizar a quantidade de um produto existente.
 
@@ -268,10 +268,10 @@ Este endpoint permite adicionar um produto ao carrinho do usuário autenticado o
 
 **Exemplo de Uso (Adicionar um novo produto):**
 ```bash
-# Primeiro, obtenha um ID de produto válido (ex: curl http://localhost:3000/products)
+# Primeiro, obtenha um ID de produto válido (ex: curl http://localhost:3000/api/v1/products)
 curl -X POST -H "Content-Type: application/json" \
      -H "Authorization: Token token=<SEU_TOKEN>" \
-     -d '{"product_id": 1, "quantity": 1}' http://localhost:3000/cart
+     -d '{"product_id": 1, "quantity": 1}' http://localhost:3000/api/v1/cart
 ```
 
 **Exemplo de Uso (Atualizar quantidade de produto existente):**
@@ -280,7 +280,7 @@ curl -X POST -H "Content-Type: application/json" \
 # Se o produto com product_id=1 já estiver no carrinho, a quantidade será incrementada
 curl -X POST -H "Content-Type: application/json" \
      -H "Authorization: Token token=<SEU_TOKEN>" \
-     -d '{"product_id": 1, "quantity": 2}' http://localhost:3000/cart
+     -d '{"product_id": 1, "quantity": 2}' http://localhost:3000/api/v1/cart
 ```
 
 **Exemplo de Resposta:**
@@ -308,14 +308,14 @@ curl -X POST -H "Content-Type: application/json" \
 }
 ```
 
-#### **3. `DELETE /cart/:product_id` - Remover um produto do carrinho**
+#### **3. `DELETE /api/v1/cart/:product_id` - Remover um produto do carrinho**
 
 Este endpoint remove um produto específico do carrinho do usuário autenticado com base no seu `product_id`.
 
 **Exemplo de Uso:**
 ```bash
 # Substitua '1' pelo ID do produto que você deseja remover do carrinho
-curl -X DELETE http://localhost:3000/cart/1 \
+curl -X DELETE http://localhost:3000/api/v1/cart/1 \
      -H "Authorization: Token token=<SEU_TOKEN>"
 ```
 

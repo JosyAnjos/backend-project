@@ -1,17 +1,17 @@
 require "rails_helper"
 
-describe CartsController, type: :routing do
+describe Api::V1::CartsController, type: :routing do
   describe 'routing' do
     it 'routes to #show' do
-      expect(get: '/cart').to route_to('carts#show')
+      expect(get: '/api/v1/cart').to route_to('api/v1/carts#show')
     end
 
     it 'routes to #add_item via POST' do
-      expect(post: '/cart').to route_to('carts#add_item')
+      expect(post: '/api/v1/cart').to route_to('api/v1/carts#add_item')
     end
 
     it 'routes to #remove_item via DELETE' do
-      expect(delete: '/cart/1').to route_to('carts#remove_item', product_id: '1')
+      expect(delete: '/api/v1/cart/1').to route_to('api/v1/carts#remove_item', product_id: '1')
     end
   end
 end
