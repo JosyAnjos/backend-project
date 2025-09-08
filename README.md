@@ -360,18 +360,6 @@ curl -X DELETE http://localhost:3000/api/v1/cart/1 \
 
 ---
 
-## ⚙️ Configurações Personalizadas
-
-Os limiares de tempo para abandono e remoção de carrinhos são configuráveis em `config/application.rb`:
-
-```ruby
-# config/application.rb
-config.cart_abandonment_threshold_hours = 3 # Horas de inatividade para marcar como abandonado
-config.cart_removal_threshold_days = 7    # Dias de abandono para remover o carrinho
-```
-
----
-
 ## 🛠️ Estrutura do Projeto
 
 - `app/models/cart.rb` → regras de negócio (adicionar/remover produtos, abandono, expiração).
