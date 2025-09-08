@@ -1,6 +1,6 @@
 require 'rails_helper'
 
-RSpec.describe '/cart', type: :request do
+describe '/cart', type: :request do
   let(:product1) { create(:product, price: 10.0) }
   let(:product2) { create(:product, price: 5.0) }
   let(:user)     { create(:user) }

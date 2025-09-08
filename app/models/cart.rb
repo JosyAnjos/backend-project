@@ -7,23 +7,9 @@ class Cart < ApplicationRecord
 
   validates_numericality_of :total_price, greater_than_or_equal_to: 0, allow_nil: true
 
-  scope :inactive, ->  { where('last_interaction_at < ?', CART_ABANDONMENT_THRESHOLD_HOURS.hours.ago) }
+  scope :inactive, -> { where('last_interaction_at < ?', CART_ABANDONMENT_THRESHOLD_HOURS.hours.ago) }
   scope :abandoned, -> { where(abandoned: true) }
-  scope :expired,   -> { where('last_interaction_at < ?', CART_REMOVAL_THRESHOLD_DAYS.days.ago) }
-
-  def mark_as_abandoned
-    if last_interaction_at.present? && last_interaction_at < CART_ABANDONMENT_THRESHOLD_HOURS.hours.ago
-      update(abandoned: true)
-    end
-  end
-
-  def remove_if_abandoned
-    destroy if abandoned? && last_interaction_at.present? && last_interaction_at < CART_REMOVAL_THRESHOLD_DAYS.days.ago
-  end
-
-  def abandoned?
-    abandoned
-  end
+  scope :expired, -> { where('last_interaction_at < ?', CART_REMOVAL_THRESHOLD_DAYS.days.ago) }
 
   def touch_interaction!
     update!(last_interaction_at: Time.current)
@@ -35,32 +21,15 @@ class Cart < ApplicationRecord
     item = cart_items.find_or_initialize_by(product: product)
     item.quantity = (item.quantity || 0) + quantity.to_i
     item.save!
-    recalculate_total!
     item
   end
 
   def remove_product(product)
     item = cart_items.find_by(product: product)
-    return unless item
-
-    item.destroy
-    recalculate_total!
+    item&.destroy
   end
 
   def recalculate_total!
-    total = cart_items
-              .joins(:product)
-              .sum(Arel.sql('cart_items.quantity * products.price'))
-    update!(total_price: total)
-  end
-
-  # Delega para o serializer e mantem compatibilidade com testes que chamam Cart#as_json
-  def as_json(_opts = {})
-    serializer = CartSerializer.new(self)
-    serialized_data = serializer.as_json
-
-    # Adjust keys to match test expectations
-    serialized_data[:products] = serialized_data.delete(:cart_items) if serialized_data.key?(:cart_items)
-    serialized_data
+    update!(total_price: cart_items.joins(:product).sum('cart_items.quantity * products.price'))
   end
 end

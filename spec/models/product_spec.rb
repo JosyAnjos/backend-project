@@ -1,6 +1,6 @@
 require 'rails_helper'
 
-RSpec.describe Product, type: :model do
+describe Product, type: :model do
   context 'when validating' do
     it 'validates presence of name' do
       product = described_class.new(price: 100)
