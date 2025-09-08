@@ -15,6 +15,8 @@ Suporta **adicionar/remover produtos**, cálculo automático de total, controle 
 - [RSpec](https://rspec.info) (testes)
 - [FactoryBot](https://github.com/thoughtbot/factory_bot) (fixtures)
 - [Docker](https://www.docker.com) e [docker-compose](https://docs.docker.com/compose/)
+- [Devise](https://github.com/heartcombo/devise) (autenticação)
+- [Active Model Serializers](https://github.com/rails-api/active_model_serializers) (serialização JSON)
 
 ---
 
@@ -65,139 +67,173 @@ docker compose run --rm api bundle exec rspec
 Exemplo de saída esperada:
 
 ```
-Finished in 1.23 seconds
-52 examples, 0 failures
+Finished in X.XX seconds
+Y examples, 0 failures
 ```
 
 ---
 
-Documentação dos Endpoints do Carrinho (Carts Controller)
+## 🔐 Autenticação (Devise + Token-based)
 
-  Para testar e interagir com os endpoints do carrinho via curl, assumindo que sua aplicação Rails está rodando em http://localhost:3000.
+A API utiliza autenticação baseada em token via Devise. Cada `User` possui um `authentication_token` que deve ser enviado no cabeçalho `Authorization` para acessar os endpoints protegidos.
 
-  1. `GET /cart` - Listar itens do carrinho atual
+**Como obter um token:**
+Atualmente, não há um endpoint de registro/login implementado. Para testar, você pode criar um usuário manualmente no console Rails e usar o `authentication_token` gerado:
 
-  Este endpoint retorna o estado atual do carrinho. Se não houver um carrinho associado à sessão, um novo será criado e retornado.
-
-   1 curl -X GET http://localhost:3000/cart
-
-  Exemplo de Resposta:
-  
-  ```
-
-    1 {
-    2   "id": 123,
-    3   "total_price": "25.90",
-    4   "cart_items": [
-    5     {
-    6       "id": 456,
-    7       "name": "Nome do Produto A",
-    8       "quantity": 2,
-    9       "unit_price": "10.00",
-   10       "total_price": "20.00"
-   11     },
-   12     {
-   13       "id": 789,
-   14       "name": "Nome do Produto B",
-   15       "quantity": 1,
-   16       "unit_price": "5.90",
-   17       "total_price": "5.90"
-   18     }
-   19   ]
-   20 }
-   
+```bash
+docker compose run --rm api rails c
+```
+Dentro do console:
+```ruby
+user = User.create!(email: 'test@example.com', password: 'password', password_confirmation: 'password')
+puts user.authentication_token
 ```
 
+Use o token retornado nos seus requests.
 
-  2. `POST /cart` - Registrar/Alterar quantidade de produtos no carrinho
+---
 
-  **Este endpoint** permite adicionar um produto ao carrinho ou atualizar a quantidade de um produto existente.
+## 📄 Documentação dos Endpoints do Carrinho (Carts Controller)
 
-  Payload de Exemplo:
-  
-  ```
+Para testar e interagir com os endpoints do carrinho via `curl`, assumindo que sua aplicação Rails está rodando em `http://localhost:3000` e você tem um token de autenticação.
 
-   1 {
-   2   "product_id": 1,   // ID do produto a ser adicionado/atualizado
-   3   "quantity": 1      // Quantidade a ser adicionada (será somada à quantidade existente)
-   4 }
+**Cabeçalho de Autenticação:**
+Todos os endpoints do carrinho exigem o cabeçalho `Authorization` no formato `Token token=<SEU_TOKEN>`.
 
+#### **1. `GET /cart` - Listar itens do carrinho atual**
+
+Este endpoint retorna o estado atual do carrinho do usuário autenticado. Se não houver um carrinho associado ao usuário, um novo será criado e retornado.
+
+```bash
+curl -X GET http://localhost:3000/cart \
+     -H "Authorization: Token token=<SEU_TOKEN>"
 ```
 
-  Exemplo de Uso (Adicionar um novo produto):
-
-   1 # Primeiro, obtenha um ID de produto válido (ex: curl http://localhost:3000/products)
-   
-   2 curl -X POST -H "Content-Type: application/json" -d '{"product_id": 1, "quantity": 1}' http://localhost:3000/cart
-
-  Exemplo de Uso (Atualizar quantidade de produto existente):
-
-   1 # Se o produto com product_id=1 já estiver no carrinho, a quantidade será incrementada
-   
-   2 curl -X POST -H "Content-Type: application/json" -d '{"product_id": 1, "quantity": 2}' http://localhost:3000/cart
-
-  Exemplo de Resposta:
-  (A resposta será o objeto completo do carrinho, similar ao GET /cart, com o produto atualizado e o total_price recalculado.)
-
-```
-    1 {
-    2   "id": 123,
-    3   "total_price": "45.90",
-    4   "cart_items": [
-    5     {
-    6       "id": 456,
-    7       "name": "Nome do Produto A",
-    8       "quantity": 3,  // Quantidade atualizada
-    9       "unit_price": "10.00",
-   10       "total_price": "30.00"
-   11     },
-   12     {
-   13       "id": 789,
-   14       "name": "Nome do Produto B",
-   15       "quantity": 1,
-   16       "unit_price": "5.90",
-   17       "total_price": "5.90"
-   18     }
-   19   ]
-   20 }
+**Exemplo de Resposta:**
+```json
+{
+  "id": 123,
+  "total_price": "25.90",
+  "cart_items": [
+    {
+      "id": 456,
+      "name": "Nome do Produto A",
+      "quantity": 2,
+      "unit_price": "10.00",
+      "total_price": "20.00"
+    },
+    {
+      "id": 789,
+      "name": "Nome do Produto B",
+      "quantity": 1,
+      "unit_price": "5.90",
+      "total_price": "5.90"
+    }
+  ]
+}
 ```
 
-  3. `DELETE /cart/:product_id` - Remover um produto do carrinho
+#### **2. `POST /cart` - Registrar/Alterar quantidade de produtos no carrinho**
 
-  **Este endpoint** remove um produto específico do carrinho com base no seu product_id.
+Este endpoint permite adicionar um produto ao carrinho do usuário autenticado ou atualizar a quantidade de um produto existente.
 
-  Exemplo de Uso:
-
-   1 # Substitua '1' pelo ID do produto que você deseja remover do carrinho
-   
-   2 curl -X DELETE http://localhost:3000/cart/1
-
-  Exemplo de Resposta:
-  (A resposta será o objeto completo do carrinho, com o produto removido e o total_price recalculado.)
-  
+**Payload de Exemplo:**
+```json
+{
+  "product_id": 1,   // ID do produto a ser adicionado/atualizado
+  "quantity": 1      // Quantidade a ser adicionada (será somada à quantidade existente)
+}
 ```
-    1 {
-    2   "id": 123,
-    3   "total_price": "5.90",
-    4   "cart_items": [
-    5     {
-    6       "id": 789,
-    7       "name": "Nome do Produto B",
-    8       "quantity": 1,
-    9       "unit_price": "5.90",
-   10       "total_price": "5.90"
-   11     }
-   12   ]
-   13 }
 
+**Exemplo de Uso (Adicionar um novo produto):**
+```bash
+# Primeiro, obtenha um ID de produto válido (ex: curl http://localhost:3000/products)
+curl -X POST -H "Content-Type: application/json" \
+     -H "Authorization: Token token=<SEU_TOKEN>" \
+     -d '{"product_id": 1, "quantity": 1}' http://localhost:3000/cart
+```
+
+**Exemplo de Uso (Atualizar quantidade de produto existente):**
+```bash
+# Se o produto com product_id=1 já estiver no carrinho, a quantidade será incrementada
+curl -X POST -H "Content-Type: application/json" \
+     -H "Authorization: Token token=<SEU_TOKEN>" \
+     -d '{"product_id": 1, "quantity": 2}' http://localhost:3000/cart
+```
+
+**Exemplo de Resposta:**
+(A resposta será o objeto completo do carrinho, similar ao `GET /cart`, com o produto atualizado e o `total_price` recalculado.)
+```json
+{
+  "id": 123,
+  "total_price": "45.90",
+  "cart_items": [
+    {
+      "id": 456,
+      "name": "Nome do Produto A",
+      "quantity": 3,  // Quantidade atualizada
+      "unit_price": "10.00",
+      "total_price": "30.00"
+    },
+    {
+      "id": 789,
+      "name": "Nome do Produto B",
+      "quantity": 1,
+      "unit_price": "5.90",
+      "total_price": "5.90"
+    }
+  ]
+}
+```
+
+#### **3. `DELETE /cart/:product_id` - Remover um produto do carrinho**
+
+Este endpoint remove um produto específico do carrinho do usuário autenticado com base no seu `product_id`.
+
+**Exemplo de Uso:**
+```bash
+# Substitua '1' pelo ID do produto que você deseja remover do carrinho
+curl -X DELETE http://localhost:3000/cart/1 \
+     -H "Authorization: Token token=<SEU_TOKEN>"
+```
+
+**Exemplo de Resposta:**
+(A resposta será o objeto completo do carrinho, com o produto removido e o `total_price` recalculado.)
+```json
+{
+  "id": 123,
+  "total_price": "5.90",
+  "cart_items": [
+    {
+      "id": 789,
+      "name": "Nome do Produto B",
+      "quantity": 1,
+      "unit_price": "5.90",
+      "total_price": "5.90"
+    }
+  ]
+}
 ```
 
 ---
 
+## ⚙️ Configurações Personalizadas
+
+Os limiares de tempo para abandono e remoção de carrinhos são configuráveis em `config/application.rb`:
+
+```ruby
+# config/application.rb
+config.cart_abandonment_threshold_hours = 3 # Horas de inatividade para marcar como abandonado
+config.cart_removal_threshold_days = 7    # Dias de abandono para remover o carrinho
+```
+
+---
 
 ## 🛠️ Estrutura do Projeto
 
 - `app/models/cart.rb` → regras de negócio (adicionar/remover produtos, abandono, expiração).
+- `app/models/user.rb` → modelo de usuário para autenticação (Devise).
+- `app/controllers/application_controller.rb` → lógica de autenticação por token.
 - `app/controllers/carts_controller.rb` → controle HTTP.
 - `app/serializers` → serialização de resposta JSON.
 - `app/jobs` → jobs Sidekiq.

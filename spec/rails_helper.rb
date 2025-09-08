@@ -15,6 +15,7 @@ end
 abort("The Rails environment is running in production mode!") if Rails.env.production?
 
 require 'rspec/rails'
+require 'faker'
 
 # Carrega arquivos de suporte (helpers, matchers customizados, etc.)
 Rails.root.glob('spec/support/**/*.rb').sort.each { |f| require f }

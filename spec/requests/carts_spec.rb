@@ -3,27 +3,29 @@ require 'rails_helper'
 RSpec.describe '/cart', type: :request do
   let(:product1) { create(:product, price: 10.0) }
   let(:product2) { create(:product, price: 5.0) }
+  let(:user)     { create(:user) }
+
+  let(:auth_headers) { { 'Authorization' => "Token token=#{user.authentication_token}" } }
 
   describe 'GET /cart' do
-    context 'when cart does not exist' do
-      it 'creates a new cart and returns it' do
-        get '/cart'
-        puts response.body
+    context 'when cart does not exist for the user' do
+      it 'creates a new cart for the user and returns it' do
+        get '/cart', headers: auth_headers
         expect(response).to have_http_status(:ok)
 
         json_response = JSON.parse(response.body)
         expect(json_response['id']).to be_present
         expect(json_response['cart_items']).to be_empty
+        expect(user.reload.cart).to be_present
       end
     end
 
-    context 'when cart exists' do
-      let(:cart) { create(:cart, total_price: 20.0) }
+    context 'when cart exists for the user' do
+      let!(:cart) { create(:cart, user: user, total_price: 20.0) }
 
       before do
         cart.cart_items.create!(product: product1, quantity: 2)
-        allow_any_instance_of(CartsController).to receive(:session).and_return({ cart_id: cart.id })
-        get '/cart'
+        get '/cart', headers: auth_headers
       end
 
       it 'returns the cart details' do
@@ -35,12 +37,19 @@ RSpec.describe '/cart', type: :request do
         expect(json_response['total_price']).to eq('20.0')
       end
     end
+
+    context 'when user is not authenticated' do
+      it 'returns unauthorized' do
+        get '/cart'
+        expect(response).to have_http_status(:unauthorized)
+      end
+    end
   end
 
   describe 'POST /cart' do
     context 'when adding a new product to the cart' do
       before do
-        post '/cart', params: { product_id: product1.id, quantity: 1 }
+        post '/cart', params: { product_id: product1.id, quantity: 1 }, headers: auth_headers
       end
 
       it 'returns a successful response' do
@@ -61,12 +70,11 @@ RSpec.describe '/cart', type: :request do
     end
 
     context 'when the product already is in the cart' do
-      let(:cart) { create(:cart) }
+      let!(:cart) { create(:cart, user: user) }
 
       before do
         cart.cart_items.create!(product: product1, quantity: 1)
-        allow_any_instance_of(CartsController).to receive(:session).and_return({ cart_id: cart.id })
-        post '/cart', params: { product_id: product1.id, quantity: 2 }
+        post '/cart', params: { product_id: product1.id, quantity: 2 }, headers: auth_headers
       end
 
       it 'updates the quantity of the existing item in the cart' do
@@ -79,31 +87,37 @@ RSpec.describe '/cart', type: :request do
         expect(json_response['total_price'].to_f).to eq(30.0)
       end
     end
+
+    context 'when user is not authenticated' do
+      it 'returns unauthorized' do
+        post '/cart', params: { product_id: product1.id, quantity: 1 }
+        expect(response).to have_http_status(:unauthorized)
+      end
+    end
   end
 
   describe 'DELETE /cart/:product_id' do
-    let(:cart) { create(:cart) }
+    let!(:cart) { create(:cart, user: user) }
 
     before do
       cart.cart_items.create!(product: product1, quantity: 2)
       cart.cart_items.create!(product: product2, quantity: 3)
-      allow_any_instance_of(CartsController).to receive(:session).and_return({ cart_id: cart.id })
     end
 
     context 'when product exists in cart' do
       it 'removes the product from the cart' do
         expect {
-          delete "/cart/#{product1.id}"
+          delete "/cart/#{product1.id}", headers: auth_headers
         }.to change { cart.reload.cart_items.count }.by(-1)
       end
 
       it 'returns a successful response' do
-        delete "/cart/#{product1.id}"
+        delete "/cart/#{product1.id}", headers: auth_headers
         expect(response).to have_http_status(:ok)
       end
 
       it 'recalculates the total price' do
-        delete "/cart/#{product1.id}"
+        delete "/cart/#{product1.id}", headers: auth_headers
         json_response = JSON.parse(response.body)
         expect(json_response['total_price'].to_f).to eq(15.0)
       end
@@ -111,8 +125,15 @@ RSpec.describe '/cart', type: :request do
 
     context 'when product does not exist in cart' do
       it 'returns a not found response' do
-        delete '/cart/999'
+        delete '/cart/999', headers: auth_headers
         expect(response).to have_http_status(:not_found)
+      end
+    end
+
+    context 'when user is not authenticated' do
+      it 'returns unauthorized' do
+        delete "/cart/#{product1.id}"
+        expect(response).to have_http_status(:unauthorized)
       end
     end
   end

@@ -9,11 +9,13 @@ gem "redis", "~> 5.0"
 gem "bootsnap", require: false
 gem 'sidekiq'
 gem 'active_model_serializers', '~> 0.10.0'
+gem 'devise'
 
 group :development, :test do
   gem "rspec-rails", "~> 6.1"
   gem "factory_bot_rails"
   gem "debug", platforms: %i[mri windows]
+  gem 'faker'
 end
 
 group :test do

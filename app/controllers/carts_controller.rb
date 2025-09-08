@@ -1,4 +1,6 @@
 class CartsController < ApplicationController
+  before_action :authenticate_user_from_token
+  before_action :require_authentication
   before_action :set_cart
 
   def show
@@ -21,13 +23,12 @@ class CartsController < ApplicationController
 
   private
 
+  def require_authentication
+    render json: { error: "Unauthorized" }, status: :unauthorized unless user_signed_in?
+  end
+
   def set_cart
-    if session[:cart_id]
-      @cart = Cart.find(session[:cart_id])
-    else
-      @cart = Cart.create!
-      session[:cart_id] = @cart.id
-    end
+    @cart = current_user.cart || current_user.create_cart!
   end
 
   def cart_params
