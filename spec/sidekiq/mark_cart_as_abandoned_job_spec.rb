@@ -26,5 +26,20 @@ describe MarkCartAsAbandonedJob, type: :job do
         active_cart.reload
       }.not_to change { active_cart.abandoned }
     end
+
+    context 'when an error occurs' do
+      before do
+        allow(CartService).to receive(:mark_abandoned_carts).and_raise(StandardError, 'Something went wrong')
+      end
+
+      it 'logs the error' do
+        expect(Rails.logger).to receive(:error).with('Failed to process abandoned carts: Something went wrong')
+        expect { described_class.new.perform }.to raise_error(StandardError, 'Something went wrong')
+      end
+
+      it 'raises the error' do
+        expect { described_class.new.perform }.to raise_error(StandardError, 'Something went wrong')
+      end
+    end
   end
 end

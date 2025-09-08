@@ -71,6 +71,27 @@ Finished in X.XX seconds
 Y examples, 0 failures
 ```
 
+### Testando Jobs do Sidekiq
+
+Para testar o `MarkCartAsAbandonedJob` (ou qualquer outro job do Sidekiq), você pode:
+
+1.  **Rodar os testes RSpec específicos do job:**
+
+    ```bash
+    docker compose run --rm test spec/sidekiq/mark_cart_as_abandoned_job_spec.rb
+    ```
+
+2.  **Enfileirar o job manualmente via console Rails:**
+
+    ```bash
+    docker compose run --rm web rails c
+    ```
+    Dentro do console:
+    ```ruby
+    MarkCartAsAbandonedJob.perform_async # Para enfileirar o job
+    ```
+    Você pode verificar o status do job no Sidekiq Dashboard (`http://localhost:3000/sidekiq`).
+
 ---
 
 ## 🔐 Autenticação (Devise + Token-based)
