@@ -16,6 +16,9 @@ group :development, :test do
   gem "factory_bot_rails"
   gem "debug", platforms: %i[mri windows]
   gem 'faker'
+  gem 'rubocop', require: false
+  gem 'rubocop-rails'
+  gem 'rubocop-rspec'
 end
 
 group :test do

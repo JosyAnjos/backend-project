@@ -6,8 +6,7 @@ FROM ruby:$RUBY_VERSION-slim as base
 WORKDIR /rails
 
 ENV BUNDLE_DEPLOYMENT="1" \
-    BUNDLE_PATH="/usr/local/bundle" \
-    BUNDLE_WITHOUT="development"
+    BUNDLE_PATH="/usr/local/bundle"
 
 # Build stage com ferramentas de compilação
 FROM base as build
@@ -47,9 +46,7 @@ RUN apt-get update -qq && \
 COPY --from=build /usr/local/bundle /usr/local/bundle
 COPY --from=build /rails /rails
 
-RUN mkdir -p db log storage tmp && \
-    useradd rails --create-home --shell /bin/bash && \
-    chown -R rails:rails db log storage tmp
+RUN mkdir -p db log storage tmp &&     useradd rails --create-home --shell /bin/bash &&     chown -R rails:rails db log storage tmp /usr/local/bundle
 USER rails:rails
 
 ENTRYPOINT ["/rails/bin/docker-entrypoint"]
